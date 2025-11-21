@@ -1,3 +1,4 @@
+
 import { Participant, UserShareData } from "../types";
 
 // Fisher-Yates Shuffle
@@ -10,37 +11,27 @@ export const shuffleArray = <T,>(array: T[]): T[] => {
   return newArray;
 };
 
-export const performDraw = (participants: Participant[]): Participant[] => {
-  if (participants.length < 2) return participants;
+// Returns a Record<UserId, TargetUserId>
+export const performDraw = (participantIds: string[]): Record<string, string> => {
+  if (participantIds.length < 2) return {};
 
-  let shuffled = shuffleArray(participants);
-  let isValid = false;
-
-  // Ensure no one draws themselves
-  // Simple approach: Rotate array by 1 if strict circularity is desired,
-  // or keep shuffling until valid for small groups.
-  // For guaranteed result without infinite loops in small sets:
-  // Just shift the array by 1 index for assignment.
+  // Fisher-Yates shuffle to randomize order
+  let shuffled = shuffleArray(participantIds);
   
-  // Create a mapping
-  const ids = participants.map(p => p.id);
-  const rotatedIds = [...ids.slice(1), ids[0]]; // Rotate assignments
+  // Simple rotation: Everyone gives to the person "next" to them in the shuffled circle
+  const assignments: Record<string, string> = {};
+  
+  for (let i = 0; i < shuffled.length; i++) {
+    const giver = shuffled[i];
+    const receiver = shuffled[(i + 1) % shuffled.length]; // Wrap around to 0 at the end
+    assignments[giver] = receiver;
+  }
 
-  return participants.map((p) => {
-    const targetId = rotatedIds[ids.indexOf(p.id)];
-    const target = participants.find(part => part.id === targetId);
-    return {
-      ...p,
-      assignedToId: targetId,
-      assignedToName: target?.name
-    };
-  });
+  return assignments;
 };
 
-// Simple obfuscation for the URL (NOT high security, but prevents casual peeking)
 export const encodeShareData = (data: UserShareData): string => {
   const json = JSON.stringify(data);
-  // Encode to Base64
   return btoa(unescape(encodeURIComponent(json)));
 };
 
@@ -57,3 +48,11 @@ export const decodeShareData = (hash: string): UserShareData | null => {
 export const generateId = (): string => {
   return Math.random().toString(36).substring(2, 9);
 };
+
+export const getDaysUntil = (dateStr: string): number | null => {
+  if (!dateStr) return null;
+  const now = new Date().getTime();
+  const target = new Date(dateStr).getTime();
+  const distance = target - now;
+  return distance / (1000 * 60 * 60 * 24);
+}

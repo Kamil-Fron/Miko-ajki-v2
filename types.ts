@@ -1,43 +1,57 @@
+
 export interface Participant {
   id: string;
   name: string;
-  wishlist?: string; // Optional hint from admin or pre-filled
-  assignedToId?: string; // ID of the person they are buying for
-  assignedToName?: string; // Name of the person they are buying for (for display in decoded view)
-  status: 'pending' | 'approved'; // Moderation status
+  password?: string;
+  wishlistItems?: string[];
+  groupIds: string[]; // Users can belong to multiple groups
+  assignedToId?: string; // Only relevant for the specific context (handled via filtered mapping in state or ephemeral)
+  // For multi-group support, assignments need to be mapped per group.
+  // We will store assignments in the Group object, not the Participant object, 
+  // OR store a record here: { [groupId]: targetId }
+  assignments: Record<string, string>; 
+  
+  status: 'pending' | 'approved';
+  isReady: boolean; // This could be per group, but for simplicity, we'll treat "Ready" as global or add to Group. 
+  // Actually, readiness should be per group.
+  readyGroups: string[]; // IDs of groups where user is ready
+  revealedGroups: string[]; // IDs of groups where user revealed
 }
 
 export interface PollOption {
   id: string;
   text: string;
-  votes: number;
+  // votes count is derived from Poll.userSelections
 }
 
 export interface Poll {
   id: string;
+  groupId: string; // Polls belong to a group
   question: string;
   options: PollOption[];
+  userSelections: Record<string, string>; // userId -> optionId. Ensures 1 vote per user.
 }
 
-export interface GroupSettings {
-  groupName: string;
+export interface Group {
+  id: string;
+  name: string;
   budget: string;
-  exchangeDate: string;
   currency: string;
-  adminName: string;
+  exchangeDate: string;
+  isActive: boolean;
+  isDrawComplete: boolean;
 }
 
 export interface AppState {
   participants: Participant[];
+  groups: Group[];
   polls: Poll[];
-  settings: GroupSettings;
-  isDrawComplete: boolean;
+  adminPassword?: string;
 }
 
-// Data structure encoded in the share URL for a specific user
 export interface UserShareData {
-  recipientName: string; // Who they are buying for
-  recipientWishlist?: string; // What that person wants
+  recipientName: string;
+  recipientWishlistItems?: string[];
   groupName: string;
   budget: string;
   currency: string;

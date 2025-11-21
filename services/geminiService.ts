@@ -12,17 +12,16 @@ export const generateGiftIdeas = async (
 ): Promise<string> => {
   if (!apiKey) return "Proszę skonfigurować klucz API, aby otrzymać sugestie.";
 
+  // Simplified prompt for concrete answers
   const prompt = `
-    Jesteś pomocnikiem Świętego Mikołaja.
-    Muszę kupić prezent dla osoby o imieniu: ${recipientName}.
-    Budżet to: ${budget} ${currency}.
-    ${interests ? `Zainteresowania/Wskazówki: ${interests}` : 'Brak konkretnych wskazówek, zaproponuj coś uniwersalnego ale kreatywnego.'}
-    ${ageGroup ? `Grupa wiekowa: ${ageGroup}` : ''}
+    Jesteś asystentem prezentowym.
+    Osoba: ${recipientName}.
+    Budżet: ${budget} ${currency}.
+    Lista życzeń/Zainteresowania: ${interests || "Brak, wymyśl coś uniwersalnego"}.
 
-    Zaproponuj 5 konkretnych pomysłów na prezent, które mieszczą się w tym budżecie.
-    Dla każdego pomysłu napisz krótkie, zabawne uzasadnienie w świątecznym tonie.
-    Nie formatuj tego jako JSON, tylko jako ładną listę z punktami (emoji na początku każdego punktu).
-    Odpowiadaj po polsku.
+    Wypisz 3 KONKRETNE propozycje prezentów.
+    Bez "lania wody".
+    Tylko lista z krótkim (jedno zdanie) wyjaśnieniem dlaczego to pasuje.
   `;
 
   try {
@@ -33,7 +32,7 @@ export const generateGiftIdeas = async (
     return response.text || "Nie udało się wygenerować pomysłów.";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Ho ho ho! Mikołaj ma małą awarię sań (błąd połączenia). Spróbuj ponownie później.";
+    return "Błąd połączenia z AI.";
   }
 };
 
@@ -46,12 +45,12 @@ export const generateGroupInvite = async (
   if (!apiKey) return "";
 
   const prompt = `
-    Napisz krótkie, zabawne, rymowane zaproszenie na grupowe losowanie prezentów (Secret Santa/Mikołajki).
-    Nazwa grupy: ${groupName}.
+    Napisz krótkie, zabawne zaproszenie na grupowe losowanie prezentów.
+    Nazwa wydarzenia: ${groupName}.
     Data finału/wymiany: ${date}.
     Budżet: ${budget} ${currency}.
     Zachęć do kliknięcia w link (który administrator wyśle osobno).
-    Język polski. Klimat bardzo świąteczny.
+    Język polski.
   `;
 
   try {
